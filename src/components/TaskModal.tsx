@@ -58,6 +58,7 @@ export default function TaskModal({
     const [showNewProject, setShowNewProject] = useState(false);
     const [newProjectName, setNewProjectName] = useState('');
     const [projectError, setProjectError] = useState('');
+    const [showAssigneePicker, setShowAssigneePicker] = useState(false);
 
     // Comment State
     const [newComment, setNewComment] = useState('');
@@ -74,6 +75,7 @@ export default function TaskModal({
         setShowNewProject(false);
         setNewProjectName('');
         setProjectError('');
+        setShowAssigneePicker(false);
         setNewComment('');
         setCommentFile(null);
     }, [isOpen, task, initialDate]);
@@ -213,10 +215,13 @@ export default function TaskModal({
 
 
     const priorityOptions: { value: Priority; label: string; color: string }[] = [
-        { value: 'high', label: 'High', color: 'bg-rose-500' },
-        { value: 'medium', label: 'Medium', color: 'bg-amber-500' },
-        { value: 'low', label: 'Low', color: 'bg-emerald-500' },
+        { value: 'high', label: 'HIGH', color: 'bg-rose-500' },
+        { value: 'medium', label: 'MED', color: 'bg-amber-500' },
+        { value: 'low', label: 'LOW', color: 'bg-emerald-500' },
     ];
+
+    const selectedAssignees = users.filter((user) => formData.assignedTo?.includes(user.id));
+    const unassignedUsers = users.filter((user) => !formData.assignedTo?.includes(user.id));
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -229,36 +234,30 @@ export default function TaskModal({
             {/* Modal */}
             <div
                 className="
-          relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden
+                    relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden
           animate-in zoom-in-95 fade-in duration-200
         "
             >
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        {isNew ? 'New Task' : 'Edit Task'}
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
+                <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 z-10 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                    aria-label="Close"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
 
                 {/* Body */}
-                <form onSubmit={handleSubmit} className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
+                <form onSubmit={handleSubmit} className="p-4 pt-6 space-y-5 overflow-y-auto max-h-[calc(90vh-124px)]">
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                         <input
                             type="text"
                             value={formData.title || ''}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             placeholder="Enter task title"
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                            className="w-full pr-8 text-4xl leading-tight font-bold text-gray-900 placeholder:text-gray-300 bg-transparent outline-none"
                             autoFocus
                         />
                     </div>
@@ -266,7 +265,7 @@ export default function TaskModal({
                     {/* Description with Lock Toggle */}
                     <div>
                         <div className="flex items-center justify-between mb-1">
-                            <label className="block text-sm font-medium text-gray-700">Description</label>
+                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Description</label>
                             {!isNew && (
                                 <button
                                     type="button"
@@ -283,11 +282,11 @@ export default function TaskModal({
                             placeholder="Add description..."
                             rows={3}
                             disabled={!isDescriptionEditable}
-                            className={`
-                w-full px-4 py-2 border border-gray-200 rounded-xl resize-none
-                focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all
-                ${!isDescriptionEditable ? 'bg-gray-50 text-gray-500' : ''}
-              `}
+                                                        className={`
+                                w-full px-4 py-3 border border-transparent bg-gray-100 rounded-2xl resize-none
+                                focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-gray-700
+                                ${!isDescriptionEditable ? 'text-gray-500' : ''}
+                            `}
                         />
                     </div>
 
@@ -295,7 +294,7 @@ export default function TaskModal({
                     <div className="grid grid-cols-2 gap-3">
                         {/* Project */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
+                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Project</label>
                             {showNewProject ? (
                                 <div className="flex gap-2">
                                     <input
@@ -308,7 +307,7 @@ export default function TaskModal({
                                             }
                                         }}
                                         placeholder="New project name"
-                                        className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                                        className="flex-1 px-3 py-2 border border-transparent bg-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
                                     />
                                     <button
                                         type="button"
@@ -332,7 +331,7 @@ export default function TaskModal({
                                             setFormData({ ...formData, groupId: e.target.value });
                                         }
                                     }}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                                    className="w-full px-3 py-2 border border-transparent bg-gray-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none text-sm"
                                 >
                                     {projects.map((p) => (
                                         <option key={p.id} value={p.id}>{p.name}</option>
@@ -347,18 +346,18 @@ export default function TaskModal({
 
                         {/* Priority */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                            <div className="flex gap-2">
+                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Priority</label>
+                            <div className="flex gap-1 rounded-2xl bg-gray-100 p-1">
                                 {priorityOptions.map((opt) => (
                                     <button
                                         key={opt.value}
                                         type="button"
                                         onClick={() => setFormData({ ...formData, priority: opt.value })}
                                         className={`
-                      flex-1 py-2 rounded-xl text-sm font-medium transition-all
+                      flex-1 py-2 rounded-lg text-[11px] font-semibold tracking-wide transition-all
                       ${formData.priority === opt.value
                                                 ? `${opt.color} text-white shadow-md`
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                : 'bg-transparent text-gray-500 hover:bg-gray-200'
                                             }
                     `}
                                     >
@@ -371,37 +370,29 @@ export default function TaskModal({
 
                     {/* Deadline */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Deadline</label>
                         <input
                             type="date"
                             value={formData.deadline?.split('T')[0] || ''}
                             onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                            className="w-full px-4 py-2.5 border border-transparent bg-gray-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none"
                         />
                     </div>
 
                     {/* Assignees */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Assign To</label>
-                        <div className="flex flex-wrap gap-2">
-                            {users.map((user) => (
+                    <div className="relative">
+                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Assignees</label>
+                        <div className="flex flex-wrap items-center gap-2">
+                            {selectedAssignees.map((user) => (
                                 <button
                                     key={user.id}
                                     type="button"
                                     onClick={() => {
                                         const current = formData.assignedTo || [];
-                                        const updated = current.includes(user.id)
-                                            ? current.filter((id) => id !== user.id)
-                                            : [...current, user.id];
+                                        const updated = current.filter((id) => id !== user.id);
                                         setFormData({ ...formData, assignedTo: updated });
                                     }}
-                                    className={`
-                    flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all
-                    ${formData.assignedTo?.includes(user.id)
-                                            ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-300'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        }
-                  `}
+                                                                        className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full text-sm transition-all bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
                                 >
                                     <span
                                         className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs"
@@ -409,16 +400,53 @@ export default function TaskModal({
                                     >
                                         {user.username.charAt(0)}
                                     </span>
-                                    {user.username}
+                                    <span className="max-w-[108px] truncate">{user.username}</span>
                                 </button>
                             ))}
+
+                            <button
+                                type="button"
+                                onClick={() => setShowAssigneePicker((prev) => !prev)}
+                                className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-500 transition-colors flex items-center justify-center"
+                                aria-label="Add assignee"
+                            >
+                                +
+                            </button>
                         </div>
+
+                        {showAssigneePicker && (
+                            <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg p-2 max-h-44 overflow-y-auto">
+                                {unassignedUsers.length === 0 ? (
+                                    <p className="text-xs text-gray-400 px-2 py-1">All users assigned</p>
+                                ) : (
+                                    unassignedUsers.map((user) => (
+                                        <button
+                                            key={user.id}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = formData.assignedTo || [];
+                                                setFormData({ ...formData, assignedTo: [...current, user.id] });
+                                            }}
+                                            className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-gray-50 text-sm text-gray-700 flex items-center gap-2"
+                                        >
+                                            <span
+                                                className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs"
+                                                style={{ backgroundColor: user.color }}
+                                            >
+                                                {user.username.charAt(0)}
+                                            </span>
+                                            {user.username}
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Subtasks */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700">Subtasks</label>
+                            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Subtasks</label>
 
                         </div>
 
@@ -481,8 +509,8 @@ export default function TaskModal({
                     </div>
 
                     {/* Attachments Section */}
-                    <div className="pt-4 border-t border-gray-100">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Attachments</label>
+                    <div className="pt-4">
+                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Attachments</label>
                         <div className="space-y-2 mb-3">
                             {formData.files?.map((file, index) => (
                                 <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100">
@@ -517,8 +545,8 @@ export default function TaskModal({
                     </div>
 
                     {/* Comments Section */}
-                    <div className="pt-4 border-t border-gray-100">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Comments</label>
+                    <div className="pt-4">
+                        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Comments</label>
                         <div className="space-y-4 mb-4">
                             {formData.comments?.map((comment, index) => {
                                 const user = users.find(u => u.id === comment.userId);
@@ -557,10 +585,10 @@ export default function TaskModal({
                         </div>
 
                         {/* Add Comment */}
-                        <div className="flex gap-2 items-end">
-                            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-2 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
+                        <div className="flex gap-2 items-center">
+                            <div className="flex-1 bg-gray-100 border border-transparent rounded-full px-3 py-2 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white transition-all">
                                 {commentFile && (
-                                    <div className="flex items-center justify-between p-1 bg-indigo-50 rounded mb-1 text-xs text-indigo-700">
+                                    <div className="flex items-center justify-between p-1 bg-indigo-50 rounded-full mb-1 text-xs text-indigo-700">
                                         <span className="truncate max-w-[150px] inline-flex items-center gap-1">
                                             <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l8.49-8.49a3.5 3.5 0 114.95 4.95l-8.5 8.49a1.5 1.5 0 01-2.12-2.12l7.78-7.78" />
@@ -570,41 +598,43 @@ export default function TaskModal({
                                         <button type="button" onClick={() => setCommentFile(null)} className="hover:text-indigo-900">✕</button>
                                     </div>
                                 )}
-                                <textarea
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    placeholder="Write a comment..."
-                                    rows={1}
-                                    className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm resize-none"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            addComment();
-                                        }
-                                    }}
-                                />
+                                <div className="flex items-center gap-2">
+                                    <textarea
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        placeholder="Write a comment..."
+                                        rows={1}
+                                        className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-sm resize-none"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                addComment();
+                                            }
+                                        }}
+                                    />
+                                    <label
+                                        htmlFor="comment-file-upload"
+                                        className="p-1 text-gray-400 hover:text-indigo-600 rounded-full cursor-pointer transition-colors"
+                                        title="Attach file"
+                                    >
+                                        <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l8.49-8.49a3.5 3.5 0 114.95 4.95l-8.5 8.49a1.5 1.5 0 01-2.12-2.12l7.78-7.78" />
+                                        </svg>
+                                    </label>
+                                </div>
                             </div>
-                            <div className="flex gap-1">
+                            <div>
                                 <input
                                     type="file"
                                     id="comment-file-upload"
                                     className="hidden"
                                     onChange={handleCommentFileUpload}
                                 />
-                                <label
-                                    htmlFor="comment-file-upload"
-                                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors"
-                                    title="Attach file"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l8.49-8.49a3.5 3.5 0 114.95 4.95l-8.5 8.49a1.5 1.5 0 01-2.12-2.12l7.78-7.78" />
-                                    </svg>
-                                </label>
                                 <button
                                     type="button"
                                     onClick={addComment}
                                     disabled={!newComment.trim() && !commentFile}
-                                    className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors"
+                                    className="w-9 h-9 flex items-center justify-center bg-violet-500 text-white rounded-full hover:bg-violet-600 disabled:opacity-50 disabled:hover:bg-violet-500 transition-colors"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h11" />
@@ -627,7 +657,7 @@ export default function TaskModal({
                                     onClose();
                                 }
                             }}
-                            className="px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                            className="px-2 py-1 text-xs font-semibold tracking-wider text-rose-500 uppercase hover:text-rose-600 transition-colors"
                         >
                             Delete
                         </button>
@@ -636,15 +666,15 @@ export default function TaskModal({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
+                            className="px-2 py-1 text-xs font-semibold tracking-wider text-gray-400 uppercase hover:text-gray-600 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
-                            className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl hover:shadow-lg transition-all"
+                            className="px-6 py-2 bg-violet-500 text-white font-semibold rounded-full hover:bg-violet-600 transition-colors"
                         >
-                            {isNew ? 'Create' : 'Save'}
+                            {isNew ? 'Create Task' : 'Save Task'}
                         </button>
                     </div>
                 </div>

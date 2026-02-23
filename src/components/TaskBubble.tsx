@@ -102,7 +102,7 @@ export default function TaskBubble({
                 }}
                 onContextMenu={handleContextMenu}
                 className={`
-                group relative w-full rounded-2xl px-4 py-3 shadow-sm
+                relative w-full rounded-2xl px-4 py-3 shadow-sm
           transition-transform duration-75 cursor-pointer touch-pan-y
                 rounded-bl-md
           ${isCompleted
@@ -159,36 +159,6 @@ export default function TaskBubble({
                     )}
                 </div>
 
-                {/* Hover Actions (Desktop) */}
-                <div
-                    className={`
-            absolute top-1/2 -translate-y-1/2
-                        -right-20
-            opacity-0 group-hover:opacity-100 transition-opacity
-            flex items-center gap-1 md:flex hidden
-          `}
-                >
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleComplete();
-                        }}
-                        className="p-2 bg-white rounded-full shadow hover:bg-emerald-50 transition-colors"
-                        title={isCompleted ? 'Mark as pending' : 'Mark as done'}
-                    >
-                        <span className="text-sm">{isCompleted ? '↩️' : '✅'}</span>
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete();
-                        }}
-                        className="p-2 bg-white rounded-full shadow hover:bg-rose-50 transition-colors"
-                        title="Delete task"
-                    >
-                        <span className="text-sm">🗑️</span>
-                    </button>
-                </div>
             </div>
 
             {/* Context Menu */}
